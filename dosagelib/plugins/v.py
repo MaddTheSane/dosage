@@ -8,6 +8,7 @@ from re import compile
 
 from ..scraper import _BasicScraper
 from ..util import tagre
+from .common import _WordPressScraper
 
 
 class VampireCheerleaders(_BasicScraper):
@@ -18,6 +19,12 @@ class VampireCheerleaders(_BasicScraper):
     prevSearch = compile(tagre("a", "href", r'(http://www\.vampirecheerleaders\.net/strips-vc/[^"]+)', before="cndprev"))
     help = 'Index format: name'
 
+class Velocidad(_WordPressScraper):
+    url = 'http://velocidad-comic.com/'
+    stripUrl = url + '?comic=%s'
+    firstStripUrl = stripUrl % 'velocidad-cover'
+    imageSearch = '//div[@id="comic"]//img'
+    help = 'Index format: name'
 
 class VGCats(_BasicScraper):
     url = 'http://www.vgcats.com/comics/'
