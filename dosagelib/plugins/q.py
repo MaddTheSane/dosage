@@ -3,9 +3,20 @@
 # Copyright (C) 2012-2014 Bastian Kleineidam
 
 from re import compile, escape
-from ..scraper import _BasicScraper
+from ..scraper import _BasicScraper, _ParserScraper
+from ..helpers import indirectStarter
 from ..util import tagre
 
+
+class QuantumVibe(_ParserScraper):
+    url = 'http://www.quantumvibe.com/'
+    stripUrl = url + 'strip?page=%s'
+    firstStripUrl = stripUrl % '1'
+    prevSearch = '//comment()[.=" previous Strip "]/following-sibling::div[1]/a'
+    latestSearch = '//comment()[.=" current Strip "]/following-sibling::div[1]/a'
+    imageSearch = '//comment()[.=" Display the strip "]/following-sibling::div[1]//div/img'
+    starter = indirectStarter
+    help = 'Index format: number'
 
 class QuestionableContent(_BasicScraper):
     url = 'http://www.questionablecontent.net/'
