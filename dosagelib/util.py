@@ -176,7 +176,8 @@ def case_insensitive_re(name):
 
 def get_page(url, session, **kwargs):
     """Get text content of given URL."""
-    check_robotstxt(url, session)
+    #check_robotstxt(url, session)
+
     # read page data
     page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
     out.debug(u"Got page content %r" % page.content, level=3)
@@ -249,9 +250,10 @@ def check_robotstxt(url, session):
     """
     roboturl = get_roboturl(url)
     rp = get_robotstxt_parser(roboturl, session=session)
+    """
     if not rp.can_fetch(UserAgent, str(url)):
         raise IOError("%s is disallowed by %s" % (url, roboturl))
-
+"""
 
 @lru_cache()
 def get_robotstxt_parser(url, session=None):
@@ -295,6 +297,7 @@ def urlopen(url, session, referrer=None, max_content_bytes=None,
         check_content_size(url, req.headers, max_content_bytes)
         if req.status_code not in allow_errors:
             req.raise_for_status()
+        print(req.text)
         return req
     except requests.exceptions.RequestException as err:
         msg = 'URL retrieval of %s failed: %s' % (url, err)

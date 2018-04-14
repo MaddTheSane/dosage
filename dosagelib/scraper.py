@@ -378,6 +378,11 @@ class _BasicScraper(Scraper):
         return (content, baseUrl)
 
     def fetchUrls(self, url, data, urlSearch):
+        #Debug
+        print(url)
+        print(data)
+        print(urlSearch)
+
         """Search all entries for given URL pattern(s) in a HTML page."""
         searchUrls = []
         searches = makeSequence(urlSearch)
@@ -481,6 +486,11 @@ class _ParserScraper(Scraper):
         return tree
 
     def fetchUrls(self, url, data, urlSearch):
+        #Debug
+        print(url)
+        print(data)
+        print(urlSearch)
+
         """Search all entries for given XPath in a HTML page."""
         searchUrls = []
         for match, search in self._matchPattern(data, urlSearch):

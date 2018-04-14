@@ -57,6 +57,8 @@ class ComicGenesis(_ParserScraper):
             cls('DarkWelkin', 'darkwelkin'),
             cls('DeepBlue', 'gjbivin', last='20131109'),
             cls('DemonEater', 'demoneater'),
+            #added
+            cls('Dissonance', 'dissonance'),
             cls('DoodleDiaries', 'doodlediaries'),
             cls('DormSweetDorm', 'dormsweetdorm'),
             cls('DoubleyouTeeEff', 'doubleyouteeeff'),
