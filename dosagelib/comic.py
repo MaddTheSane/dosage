@@ -107,10 +107,10 @@ class ComicImage(object):
         else:
             self.connect()
 
-        fn = fnbase + '.png'
-        # compare with >= since content length could be the compressed size
         
         if seleniumUse:
+            fn = fnbase + '.png'
+            # compare with >= since content length could be the compressed size
             if os.path.isfile(fn):
                 self._exist_err(fn)
                 return fn, False
@@ -153,6 +153,7 @@ class ComicImage(object):
             return fn, True
 
         else:
+            fn = fnbase + self.ext
             # compare with >= since content length could be the compressed size
             if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
                 self._exist_err(fn)

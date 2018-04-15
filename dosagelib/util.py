@@ -296,10 +296,9 @@ def urlopen(url, session, referrer=None, max_content_bytes=None,
         driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
         out.debug(u'Chrome Headless Browser Invoked')
         driver.get(url)
-        with open('test.html', 'w') as f:
-            content = driver.page_source
-            text = driver.page_source
-            page = ResponseMimic(content, text)
+        content = driver.page_source
+        text = driver.page_source
+        page = ResponseMimic(content, text)
         driver.quit()
 
         out.debug(u"Got page content %r" % page.content, level=3)
