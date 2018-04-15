@@ -14,3 +14,4 @@
 /dosage.prof
 /scripts/*.json
 /testresults.txt
+geckodriver.log
