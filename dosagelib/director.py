@@ -123,7 +123,6 @@ class ComicGetter(threading.Thread):
             self.errors += 1
 
     def saveComicStrip(self, strip):
-        print("debug0")
         """Save a comic strip which can consist of multiple images."""
         allskipped = True
         for image in strip.getImages():

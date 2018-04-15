@@ -29,10 +29,9 @@ except ImportError:
     from backports.functools_lru_cache import lru_cache
 
 from selenium import webdriver
-from selenium.webdriver.firefox.options import Options
 
 from .output import out
-from .configuration import UserAgent, AppName, App, SupportUrl
+from .configuration import UserAgent, AppName, App, SupportUrl, seleniumUse
 
 # Maximum content size for HTML pages
 MaxContentBytes = 1024 * 1024 * 3  # 3 MB
@@ -177,39 +176,10 @@ def case_insensitive_re(name):
     return "".join("[%s%s]" % (c.lower(), c.upper()) for c in name)
 
 
-class ResponseMimic:
-    #mimic urlopen behaviour
-    def __init__(self, content, text):
-      self.content = content
-      self.text = text
-      self.encoding = None
-      self.headers = {}
-      self.headers['content-encoding'] = "image/"
-      self.status_code= 200
 
 def get_page(url, session, **kwargs):
     """Get text content of given URL."""
     #check_robotstxt(url, session)
-
-    # read page data
-    optionsC = webdriver.ChromeOptions()
-    optionsC.add_argument('headless')
-    driver = webdriver.Chrome(chrome_options=optionsC, executable_path=r'C:\Users\Lesley\Documents\Python35\chromedriver_win32\chromedriver.exe')
-    out.debug(u'Chrome Headless Browser Invoked')
-    driver.get(url)
-    with open('test.html', 'w') as f:
-        content = driver.page_source
-        text = driver.page_source
-
-        page = ResponseMimic(content, text)
-    driver.quit()
-
-    out.debug(u"Got page content %r" % page.content, level=3)
-    return page
-
-def get_page_old(url, session, **kwargs):
-    """Get text content of given URL."""
-    check_robotstxt(url, session)
 
     # read page data
     page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
@@ -282,10 +252,10 @@ def check_robotstxt(url, session):
     """
     roboturl = get_roboturl(url)
     rp = get_robotstxt_parser(roboturl, session=session)
-    """
+    
     if not rp.can_fetch(UserAgent, str(url)):
         raise IOError("%s is disallowed by %s" % (url, roboturl))
-"""
+
 
 @lru_cache()
 def get_robotstxt_parser(url, session=None):
@@ -304,36 +274,63 @@ def get_robotstxt_parser(url, session=None):
             rp.parse(req.text.splitlines())
     return rp
 
+class ResponseMimic:
+    #mimic response object
+    def __init__(self, content, text):
+      self.content = content
+      self.text = text
+      self.encoding = None
+      self.headers = {}
+      self.headers['content-encoding'] = "image/"
+      self.status_code= 200
 
 def urlopen(url, session, referrer=None, max_content_bytes=None,
             allow_errors=(), useragent=UserAgent, **kwargs):
     """Open an URL and return the response object."""
-    out.debug(u'Open URL %s' % url)
-    if 'headers' not in kwargs:
-        kwargs['headers'] = {}
-    kwargs['headers']['User-Agent'] = useragent
-    if referrer:
-        kwargs['headers']['Referer'] = referrer
-    out.debug(u'Sending headers %s' % kwargs['headers'], level=3)
-    out.debug(u'Sending cookies %s' % session.cookies)
-    if 'timeout' not in kwargs:
-        kwargs['timeout'] = ConnectionTimeoutSecs
-    if 'data' not in kwargs:
-        method = 'GET'
-    else:
-        method = 'POST'
-        out.debug(u'Sending POST data %s' % kwargs['data'], level=3)
-    try:
-        req = session.request(method, url, **kwargs)
-        out.debug(u'Response cookies: %s' % req.cookies)
-        check_content_size(url, req.headers, max_content_bytes)
-        if req.status_code not in allow_errors:
-            req.raise_for_status()
-        return req
-    except requests.exceptions.RequestException as err:
-        msg = 'URL retrieval of %s failed: %s' % (url, err)
-        raise IOError(msg)
+    if seleniumUse:
+        driverPath =os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir))  + '\scripts\chromedriver.exe'
+        optionsC = webdriver.ChromeOptions()
+        optionsC.add_argument('headless')
+        optionsC.add_argument('--log-level=3')
+        args = ["hide_console", ]
+        driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
+        out.debug(u'Chrome Headless Browser Invoked')
+        driver.get(url)
+        with open('test.html', 'w') as f:
+            content = driver.page_source
+            text = driver.page_source
+            page = ResponseMimic(content, text)
+        driver.quit()
 
+        out.debug(u"Got page content %r" % page.content, level=3)
+        return page
+    else:
+        out.debug(u'Open URL %s' % url)
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['User-Agent'] = useragent
+        if referrer:
+            kwargs['headers']['Referer'] = referrer
+        out.debug(u'Sending headers %s' % kwargs['headers'], level=3)
+        out.debug(u'Sending cookies %s' % session.cookies)
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = ConnectionTimeoutSecs
+        if 'data' not in kwargs:
+            method = 'GET'
+        else:
+            method = 'POST'
+            out.debug(u'Sending POST data %s' % kwargs['data'], level=3)
+        try:
+            req = session.request(method, url, **kwargs)
+            out.debug(u'Response cookies: %s' % req.cookies)
+            check_content_size(url, req.headers, max_content_bytes)
+            if req.status_code not in allow_errors:
+                req.raise_for_status()
+            return req
+        except requests.exceptions.RequestException as err:
+            msg = 'URL retrieval of %s failed: %s' % (url, err)
+            raise IOError(msg)
+        
 
 def check_content_size(url, headers, max_content_bytes):
     """Check that content length in URL response headers do not exceed the

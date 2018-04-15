@@ -15,7 +15,7 @@ from selenium import webdriver
 from .output import out
 from .util import unquote, getFilename, urlopen, strsize, get_page
 from .events import getHandler
-
+from .configuration import seleniumUse
 
 # Maximum content size for images
 MaxImageBytes = 1024 * 1024 * 20  # 20 MB
@@ -63,33 +63,35 @@ class ComicImage(object):
 
     def connect(self, lastchange=None):
         """Connect to host and get meta information."""
-        headers = {}
-        if lastchange:
-            headers['If-Modified-Since'] = lastchange.strftime(RFC_1123_DT_STR)
-        self.urlobj = get_page(self.url, self.scraper.session,
-                              referrer=self.referrer,
-                              max_content_bytes=MaxImageBytes, stream=True,
-                              headers=headers)
-        if self.urlobj.status_code == 304:  # Not modified
-            return
-        '''
-        content_type = unquote(self.urlobj.headers.get(
-            'content-type', 'application/octet-stream'))
-        content_type = content_type.split(';', 1)[0]
-        if '/' in content_type:
-            maintype, subtype = content_type.split('/', 1)
+        if seleniumUse is u'1':
+            out.debug(u'Bypassing connection check')
         else:
-            maintype = content_type
-            subtype = None
-        #if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
-            #raise IOError('content type %r is not an image at %s' % (content_type, self.url))
-        # Always use mime type for file extension if it is sane.
-        if maintype == 'image':
-            self.ext = '.' + subtype.replace('jpeg', 'jpg')
-        '''
-        self.contentLength = int(self.urlobj.headers.get('content-length', 0))
-        out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
-            self.filename, self.ext, self.contentLength))
+            headers = {}
+            if lastchange:
+                headers['If-Modified-Since'] = lastchange.strftime(RFC_1123_DT_STR)
+            self.urlobj = urlopen(self.url, self.scraper.session,
+                                  referrer=self.referrer,
+                                  max_content_bytes=MaxImageBytes, stream=True,
+                                  headers=headers)
+            if self.urlobj.status_code == 304:  # Not modified
+                return
+            content_type = unquote(self.urlobj.headers.get(
+                'content-type', 'application/octet-stream'))
+            content_type = content_type.split(';', 1)[0]
+            if '/' in content_type:
+                maintype, subtype = content_type.split('/', 1)
+            else:
+                maintype = content_type
+                subtype = None
+            if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
+                raise IOError('content type %r is not an image at %s' % (content_type, self.url))
+            # Always use mime type for file extension if it is sane.
+            if maintype == 'image':
+                self.ext = '.' + subtype.replace('jpeg', 'jpg')
+
+            self.contentLength = int(self.urlobj.headers.get('content-length', 0))
+            out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
+                self.filename, self.ext, self.contentLength))
 
     def save(self, basepath):
         """Save comic URL to filename on disk."""
@@ -107,53 +109,65 @@ class ComicImage(object):
 
         fn = fnbase + '.png'
         # compare with >= since content length could be the compressed size
-        '''
-        if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
-            self._exist_err(fn)
-            return fn, False
-            '''
-        out.debug(u'Writing comic to file %s...' % fn)
-
-        options = webdriver.ChromeOptions()
-        options.add_argument('headless')
-        driver = webdriver.Chrome(chrome_options=options, executable_path=r'C:\Users\Lesley\Documents\Python35\chromedriver_win32\chromedriver.exe')
-        out.debug(u'Chrome Headless Browser Invoked')
-
-        driver.get(self.url)
-        driver.set_window_size(2000, 2000)
-          
-        # Get the dimensions of the browser and image.
-        orig_h = driver.execute_script("return window.outerHeight")
-        orig_w = driver.execute_script("return window.outerWidth")
-        margin_h = orig_h - driver.execute_script("return window.innerHeight")
-        margin_w = orig_w - driver.execute_script("return window.innerWidth")
-        new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
-        new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
-
-        # Resize the browser window.
-        driver.set_window_size(new_w + margin_w, new_h + margin_h)
-
-        # Get the image by taking a screenshot of the page.
-        img = driver.get_screenshot_as_png()
-        # Set the window size back to what it was.
-        driver.set_window_size(orig_w, orig_h)
-
-        # Go back to where we started.
-        driver.quit()
-
         
-        with self.fileout(fn) as f:
-            #for chunk in self.urlobj.iter_content(self.ChunkBytes):
-                f.write(img)
-        '''
-        if self.text:
-            fntext = fnbase + ".txt"
-            out.debug(u'Writing comic text to file %s...' % fntext)
-            with self.fileout(fntext, encoding='utf-8') as f:
-                f.write(self.text)
-        '''
-        getHandler().comicDownloaded(self, fn)
-        return fn, True
+        if seleniumUse:
+            if os.path.isfile(fn):
+                self._exist_err(fn)
+                return fn, False
+                
+            out.debug(u'Writing comic to file %s...' % fn)
+
+            driverPath =os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir))  + '\scripts\chromedriver.exe'
+            optionsC = webdriver.ChromeOptions()
+            optionsC.add_argument('headless')
+            optionsC.add_argument('--log-level=3')
+            args = ["hide_console", ]
+            driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
+            out.debug(u'Chrome Headless Browser Invoked')
+
+            driver.get(self.url)
+            driver.set_window_size(2000, 2000)
+              
+            # Get the dimensions of the browser and image.
+            orig_h = driver.execute_script("return window.outerHeight")
+            orig_w = driver.execute_script("return window.outerWidth")
+            margin_h = orig_h - driver.execute_script("return window.innerHeight")
+            margin_w = orig_w - driver.execute_script("return window.innerWidth")
+            new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
+            new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
+
+            # Resize the browser window.
+            driver.set_window_size(new_w + margin_w, new_h + margin_h)
+
+            # Get the image by taking a screenshot of the page.
+            img = driver.get_screenshot_as_png()
+            # Set the window size back to what it was.
+            driver.set_window_size(orig_w, orig_h)
+
+            # Exit webdriver
+            driver.quit()
+            
+            with self.fileout(fn) as f:
+                    f.write(img)
+            getHandler().comicDownloaded(self, fn)
+            return fn, True
+
+        else:
+            # compare with >= since content length could be the compressed size
+            if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
+                self._exist_err(fn)
+                return fn, False
+            out.debug(u'Writing comic to file %s...' % fn)
+            with self.fileout(fn) as f:
+                for chunk in self.urlobj.iter_content(self.ChunkBytes):
+                    f.write(chunk)
+            if self.text:
+                fntext = fnbase + ".txt"
+                out.debug(u'Writing comic text to file %s...' % fntext)
+                with self.fileout(fntext, encoding='utf-8') as f:
+                    f.write(self.text)
+            getHandler().comicDownloaded(self, fn)
+            return fn, True
 
     @contextlib.contextmanager
     def fileout(self, filename, encoding=None):
