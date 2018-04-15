@@ -28,8 +28,7 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
-from selenium import webdriver
-
+from .webdriver import getPageDataSel
 from .output import out
 from .configuration import UserAgent, AppName, App, SupportUrl, seleniumUse
 
@@ -274,32 +273,12 @@ def get_robotstxt_parser(url, session=None):
             rp.parse(req.text.splitlines())
     return rp
 
-class ResponseMimic:
-    #mimic response object
-    def __init__(self, content, text):
-      self.content = content
-      self.text = text
-      self.encoding = None
-      self.headers = {}
-      self.headers['content-encoding'] = "image/"
-      self.status_code= 200
 
 def urlopen(url, session, referrer=None, max_content_bytes=None,
             allow_errors=(), useragent=UserAgent, **kwargs):
     """Open an URL and return the response object."""
     if seleniumUse:
-        driverPath =os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir))  + '\scripts\chromedriver.exe'
-        optionsC = webdriver.ChromeOptions()
-        optionsC.add_argument('headless')
-        optionsC.add_argument('--log-level=3')
-        args = ["hide_console", ]
-        driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
-        out.debug(u'Chrome Headless Browser Invoked')
-        driver.get(url)
-        content = driver.page_source
-        text = driver.page_source
-        page = ResponseMimic(content, text)
-        driver.quit()
+        page = getPageDataSel(url)
 
         out.debug(u"Got page content %r" % page.content, level=3)
         return page

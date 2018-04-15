@@ -12,8 +12,9 @@ from six.moves.queue import Queue, Empty
 from six.moves.urllib.parse import urlparse
 
 from .output import out
+from .webdriver import startDriver, endDriver
 from . import events, scraper
-
+from .configuration import seleniumUse
 
 class ComicQueue(Queue):
     """The comic scraper job queue."""
@@ -151,6 +152,9 @@ threads = []
 
 def getComics(options):
     """Retrieve comics."""
+    if seleniumUse:
+        startDriver()
+
     if options.handler:
         for name in set(options.handler):
             events.addHandler(name, options.basepath, options.baseurl, options.allowdownscale)
@@ -178,6 +182,9 @@ def getComics(options):
     finally:
         events.getHandler().end()
         events.clear_handlers()
+    
+    if seleniumUse:
+        endDriver()
     return errors
 
 

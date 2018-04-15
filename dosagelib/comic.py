@@ -10,8 +10,8 @@ import glob
 import codecs
 import contextlib
 from datetime import datetime
-from selenium import webdriver
 
+from .webdriver import getImgDataSel
 from .output import out
 from .util import unquote, getFilename, urlopen, strsize, get_page
 from .events import getHandler
@@ -63,96 +63,66 @@ class ComicImage(object):
 
     def connect(self, lastchange=None):
         """Connect to host and get meta information."""
-        if seleniumUse is u'1':
-            out.debug(u'Bypassing connection check')
+        headers = {}
+        if lastchange:
+            headers['If-Modified-Since'] = lastchange.strftime(RFC_1123_DT_STR)
+        self.urlobj = urlopen(self.url, self.scraper.session,
+                              referrer=self.referrer,
+                              max_content_bytes=MaxImageBytes, stream=True,
+                              headers=headers)
+        if self.urlobj.status_code == 304:  # Not modified
+            return
+        content_type = unquote(self.urlobj.headers.get(
+            'content-type', 'application/octet-stream'))
+        content_type = content_type.split(';', 1)[0]
+        if '/' in content_type:
+            maintype, subtype = content_type.split('/', 1)
         else:
-            headers = {}
-            if lastchange:
-                headers['If-Modified-Since'] = lastchange.strftime(RFC_1123_DT_STR)
-            self.urlobj = urlopen(self.url, self.scraper.session,
-                                  referrer=self.referrer,
-                                  max_content_bytes=MaxImageBytes, stream=True,
-                                  headers=headers)
-            if self.urlobj.status_code == 304:  # Not modified
-                return
-            content_type = unquote(self.urlobj.headers.get(
-                'content-type', 'application/octet-stream'))
-            content_type = content_type.split(';', 1)[0]
-            if '/' in content_type:
-                maintype, subtype = content_type.split('/', 1)
-            else:
-                maintype = content_type
-                subtype = None
-            if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
-                raise IOError('content type %r is not an image at %s' % (content_type, self.url))
-            # Always use mime type for file extension if it is sane.
-            if maintype == 'image':
-                self.ext = '.' + subtype.replace('jpeg', 'jpg')
+            maintype = content_type
+            subtype = None
+        if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
+            raise IOError('content type %r is not an image at %s' % (content_type, self.url))
+        # Always use mime type for file extension if it is sane.
+        if maintype == 'image':
+            self.ext = '.' + subtype.replace('jpeg', 'jpg')
 
-            self.contentLength = int(self.urlobj.headers.get('content-length', 0))
-            out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
-                self.filename, self.ext, self.contentLength))
+        self.contentLength = int(self.urlobj.headers.get('content-length', 0))
+        out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
+            self.filename, self.ext, self.contentLength))
 
     def save(self, basepath):
         """Save comic URL to filename on disk."""
         fnbase = self._fnbase(basepath)
         exist = [x for x in glob.glob(fnbase + ".*") if not x.endswith(".txt")]
         out.info(u"Get image URL %s" % self.url, level=1)
-        if len(exist) == 1:
-            lastchange = os.path.getmtime(exist[0])
-            self.connect(datetime.utcfromtimestamp(lastchange))
-            if self.urlobj.status_code == 304:  # Not modified
-                self._exist_err(exist[0])
-                return exist[0], False
-        else:
-            self.connect()
 
         
         if seleniumUse:
+            out.debug(u'Bypassing connection check because of webdriver')
             fn = fnbase + '.png'
             # compare with >= since content length could be the compressed size
             if os.path.isfile(fn):
                 self._exist_err(fn)
                 return fn, False
                 
+            img = getImgDataSel(self.url)
+
             out.debug(u'Writing comic to file %s...' % fn)
-
-            driverPath =os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir))  + '\scripts\chromedriver.exe'
-            optionsC = webdriver.ChromeOptions()
-            optionsC.add_argument('headless')
-            optionsC.add_argument('--log-level=3')
-            args = ["hide_console", ]
-            driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
-            out.debug(u'Chrome Headless Browser Invoked')
-
-            driver.get(self.url)
-            driver.set_window_size(2000, 2000)
-              
-            # Get the dimensions of the browser and image.
-            orig_h = driver.execute_script("return window.outerHeight")
-            orig_w = driver.execute_script("return window.outerWidth")
-            margin_h = orig_h - driver.execute_script("return window.innerHeight")
-            margin_w = orig_w - driver.execute_script("return window.innerWidth")
-            new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
-            new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
-
-            # Resize the browser window.
-            driver.set_window_size(new_w + margin_w, new_h + margin_h)
-
-            # Get the image by taking a screenshot of the page.
-            img = driver.get_screenshot_as_png()
-            # Set the window size back to what it was.
-            driver.set_window_size(orig_w, orig_h)
-
-            # Exit webdriver
-            driver.quit()
-            
             with self.fileout(fn) as f:
                     f.write(img)
             getHandler().comicDownloaded(self, fn)
             return fn, True
 
         else:
+            if len(exist) == 1:
+                lastchange = os.path.getmtime(exist[0])
+                self.connect(datetime.utcfromtimestamp(lastchange))
+                if self.urlobj.status_code == 304:  # Not modified
+                    self._exist_err(exist[0])
+                    return exist[0], False
+            else:
+                self.connect()
+
             fn = fnbase + self.ext
             # compare with >= since content length could be the compressed size
             if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
