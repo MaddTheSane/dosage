@@ -378,11 +378,6 @@ class _BasicScraper(Scraper):
         return (content, baseUrl)
 
     def fetchUrls(self, url, data, urlSearch):
-        #Debug
-        print(url)
-        print(data)
-        print(urlSearch)
-
         """Search all entries for given URL pattern(s) in a HTML page."""
         searchUrls = []
         searches = makeSequence(urlSearch)
@@ -460,6 +455,8 @@ class _ParserScraper(Scraper):
 
     def getPage(self, url):
         page = super(_ParserScraper, self).getPage(url)
+        #new get request
+
         if page.encoding:
             # Requests figured out the encoding, so we can deliver Unicode to
             # LXML. Unfortunatly, LXML feels betrayed if there is still an XML
@@ -486,11 +483,6 @@ class _ParserScraper(Scraper):
         return tree
 
     def fetchUrls(self, url, data, urlSearch):
-        #Debug
-        print(url)
-        print(data)
-        print(urlSearch)
-
         """Search all entries for given XPath in a HTML page."""
         searchUrls = []
         for match, search in self._matchPattern(data, urlSearch):

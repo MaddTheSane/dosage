@@ -28,6 +28,9 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
+from selenium import webdriver
+from selenium.webdriver.firefox.options import Options
+
 from .output import out
 from .configuration import UserAgent, AppName, App, SupportUrl
 
@@ -174,15 +177,44 @@ def case_insensitive_re(name):
     return "".join("[%s%s]" % (c.lower(), c.upper()) for c in name)
 
 
+class ResponseMimic:
+    #mimic urlopen behaviour
+    def __init__(self, content, text):
+      self.content = content
+      self.text = text
+      self.encoding = None
+      self.headers = {}
+      self.headers['content-encoding'] = "image/"
+      self.status_code= 200
+
 def get_page(url, session, **kwargs):
     """Get text content of given URL."""
     #check_robotstxt(url, session)
 
     # read page data
-    page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
+    optionsC = webdriver.ChromeOptions()
+    optionsC.add_argument('headless')
+    driver = webdriver.Chrome(chrome_options=optionsC, executable_path=r'C:\Users\Lesley\Documents\Python35\chromedriver_win32\chromedriver.exe')
+    out.debug(u'Chrome Headless Browser Invoked')
+    driver.get(url)
+    with open('test.html', 'w') as f:
+        content = driver.page_source
+        text = driver.page_source
+
+        page = ResponseMimic(content, text)
+    driver.quit()
+
     out.debug(u"Got page content %r" % page.content, level=3)
     return page
 
+def get_page_old(url, session, **kwargs):
+    """Get text content of given URL."""
+    check_robotstxt(url, session)
+
+    # read page data
+    page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
+    out.debug(u"Got page content %r" % page.content, level=3)
+    return page
 
 def makeSequence(item):
     """If item is already a list or tuple, return it.
@@ -297,7 +329,6 @@ def urlopen(url, session, referrer=None, max_content_bytes=None,
         check_content_size(url, req.headers, max_content_bytes)
         if req.status_code not in allow_errors:
             req.raise_for_status()
-        print(req.text)
         return req
     except requests.exceptions.RequestException as err:
         msg = 'URL retrieval of %s failed: %s' % (url, err)
