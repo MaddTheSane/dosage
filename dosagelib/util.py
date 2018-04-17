@@ -30,7 +30,8 @@ except ImportError:
 
 from .webdriver import getPageDataSel
 from .output import out
-from .configuration import UserAgent, AppName, App, SupportUrl, seleniumUse
+from .configuration import UserAgent, AppName, App, SupportUrl
+from .webdriver import seleniumUse
 
 # Maximum content size for HTML pages
 MaxContentBytes = 1024 * 1024 * 3  # 3 MB

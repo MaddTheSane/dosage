@@ -13,6 +13,7 @@ from six.moves.urllib.parse import urlparse
 
 from .output import out
 from . import events, scraper
+from .webdriver import driverbackup, seleniumUse
 
 
 class ComicQueue(Queue):
@@ -130,7 +131,7 @@ class ComicGetter(threading.Thread):
                 if self.options.dry_run:
                     filename, saved = "", False
                 else:
-                    filename, saved = image.save(self.options.basepath)
+                    filename, saved = self.trySave(image)
                 if saved:
                     allskipped = False
                 if self.stopped:
@@ -139,6 +140,27 @@ class ComicGetter(threading.Thread):
                 out.exception('Could not save image at %s to %s: %r' % (image.referrer, image.filename, msg))
                 self.errors += 1
         return allskipped
+
+    def trySave(self, image):
+        """Attempts to save comic strip, if fails and webdriver backup is enabled then retrys with selenium"""
+        try:
+            val = image.save(self.options.basepath)
+        except:
+            if driverbackup:
+                seleniumUse = True
+                try:
+                    val = image.save(self.options.basepath)
+                except:
+                    if driverbackup:
+                        seleniumUse = False
+                    raise
+            else:
+                raise
+        
+        if driverbackup:
+            seleniumUse = False
+        return val
+
 
     def stop(self):
         """Mark this thread as stopped."""

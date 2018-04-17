@@ -7,6 +7,8 @@ from selenium.common.exceptions import TimeoutException
 from .output import out
 
 driver = None
+seleniumUse = True
+driverbackup = False
 
 class ResponseMimic:
   #mimic response object

@@ -31,4 +31,3 @@ VoteUrl = "http://gaecounter.appspot.com/"
 
 #Using selenium instead of urllib
 #Requires chrome>=12.0.712.0
-seleniumUse = True

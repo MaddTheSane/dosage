@@ -15,7 +15,7 @@ from .webdriver import getImgDataSel
 from .output import out
 from .util import unquote, getFilename, urlopen, strsize, get_page
 from .events import getHandler
-from .configuration import seleniumUse
+from .webdriver import seleniumUse
 
 # Maximum content size for images
 MaxImageBytes = 1024 * 1024 * 20  # 20 MB
