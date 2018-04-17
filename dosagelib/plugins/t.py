@@ -12,6 +12,13 @@ from ..helpers import indirectStarter, xpath_class
 from ..util import tagre
 from .common import _ComicControlScraper, _TumblrScraper, _WordPressScraper, _WPNavi
 
+class Tamuran(_WordPressScraper):
+    url = 'http://www.tamurancomic.com/'
+    stripUrl = url + 'index.php/tamuran/%s'
+    firstStripUrl = stripUrl % 'prologue-page-1'
+    imageSearch = '//img[@class="attachment-full size-full"]'
+    prevSearch = '//a[@rel="prev"]'
+    help = 'Index Format: issue-?-page-??'
 
 class TheBrads(_ParserScraper):
     url = 'http://bradcolbow.com/archive/'

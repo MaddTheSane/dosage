@@ -21,6 +21,10 @@ class OctopusPie(_ParserScraper):
     prevSearch = '//a[@rel="prev"]'
     help = 'Index format: yyyy-mm-dd/nnn-strip-name'
 
+class OfStarsAndSwords(_WordPressScraper):
+    url = 'http://ofstarsandswords.com/'
+    prevSearch = '//a[@class="navi navi-prev"]'
+    help = 'Index format: page-n'
 
 class Oglaf(_ParserScraper):
     url = 'http://oglaf.com/'

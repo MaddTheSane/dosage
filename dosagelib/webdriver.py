@@ -93,6 +93,7 @@ def getPageDataSel(url):
     msg = 'URL retrieval of %s failed: %s' % (url, err)
     raise IOError(msg)
 
+
   page = ResponseMimic(source, resp)
 
   return page

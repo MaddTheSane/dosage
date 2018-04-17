@@ -158,6 +158,8 @@ class GrrlPower(_WPNavi):
     url = 'http://grrlpowercomic.com/'
     firstStripUrl = url + 'archives/48'
 
+class GuardianOfTheGates(_WordPressScraper):
+    url = 'http://guardianofthegates.com/'
 
 class GUComics(_BasicScraper):
     url = 'http://www.gucomics.com/'

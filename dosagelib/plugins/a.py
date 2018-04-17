@@ -240,6 +240,10 @@ class Annyseed(_ParserScraper):
             return self.stripUrl % '149'
         return tourl
 
+class ApeNotMonkey(_WordPressScraper):
+    url = 'http://www.apenotmonkey.com/'
+    prevSearch ='//a[@rel="prev"]'
+
 class AppleGeeks(_BasicScraper):
     url = 'http://www.applegeeks.com/'
     stripUrl = url + 'comics/viewcomic.php?issue=%s'

@@ -93,6 +93,13 @@ class MaxOveracts(_ParserScraper):
     prevSearch = '.nav-previous > a'
     help = 'Index format: nnn'
 
+class Mecoforie(_ParserScraper):
+    url = 'http://mecoforie.com/'
+    stripUrl = url + 'index.php?chapter=%s/'
+    firstStripUrl = stripUrl % '0&page=0'
+    imageSearch = '//img[@class="comicimg"]'
+    prevSearch = '//a[@title="Previous Page"]'
+    help = 'Index format: ??p??'
 
 class Meek(_WordPressScraper):
     url = 'http://www.meekcomic.com/'
