@@ -56,7 +56,6 @@ def getImgDataSel(url):
   out.debug(u'Navigating to image')
 
   try:
-    driver.set_page_load_timeout(10)
     driver.get(url)
   except Exception as ex:
     out.warn(u'Retrying. Exception: '+ str(ex))
