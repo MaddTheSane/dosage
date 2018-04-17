@@ -2,10 +2,12 @@
 import sys
 import os
 import platform
+import requests
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
 from .output import out
+from .configuration import UserAgent
 
 driver = None
 seleniumUse = True
@@ -13,22 +15,26 @@ driverbackup = False
 
 class ResponseMimic:
   #mimic response object
-  def __init__(self, content, text):
+  out.debug(u'Getting metadata')
+  def __init__(self, content, resp):
+    #Get real headers from urllib request
+    out.debug(u'Forming mimic response')
+    #add headers
+    self.encoding = resp.encoding
+    self.headers = resp.headers
+    self.status_code= resp.status_code
+    #Add data from webdriver
     self.content = content
-    self.text = text
-    self.encoding = None
-    self.headers = {}
-    self.headers['content-encoding'] = "image/"
-    self.status_code= 200
+    self.text = content
 
 def startDriver():
   sys = platform.system()
   if sys == 'Windows':
-    driverProgram = '\chromedriver_win3.exe'
-  if sys == 'Darwin':
+    driverProgram = '\chromedriver_win32.exe'
+  elif sys == 'Darwin':
     #check correct
     driverProgram = '\chromedriver_mac64'
-  if sys == 'Linux':
+  elif sys == 'Linux':
     driverProgram = '\chromedriver_linux64'
   else:
     raise Exception('Unidentifed system type by platform.system()')
@@ -49,25 +55,35 @@ def startDriver():
 
 def getPageDataSel(url):
   out.debug(u'Navigating to page')
-  startDriver()
 
+  #get page content
+  startDriver()
   try:
     driver.get(url)
+    source =driver.page_source
   except Exception as ex:
     out.warn(u'Retrying. Exception: '+ str(ex))
+    driver.quit()
     try:
-      driver.quit()
       startDriver()
       driver.get(url)
+      source =driver.page_source
     except:
       raise
+  driver.quit()
 
-  content = driver.page_source
-  text = driver.page_source
-  page = ResponseMimic(content, text)
+  #get page metadata
+  try:
+    headersReq = {}
+    headersReq['User-Agent'] = UserAgent
+    resp = requests.get(url, headers = headersReq)
+  except Exception as ex:
+      out.errpr(u'Exception: '+ str(ex))
+      raise
+
+  page = ResponseMimic(source, resp)
 
   out.debug(u'Exiting Chrome Headless Browser')
-  driver.quit()
   return page
 
 def getImgDataSel(url):
@@ -77,12 +93,13 @@ def getImgDataSel(url):
     driver.get(url)
   except Exception as ex:
     out.warn(u'Retrying. Exception: '+ str(ex))
+    driver.quit()
     try:
-      driver.quit()
       startDriver()
       driver.get(url)
     except:
       raise
+  driver.quit()
 
   driver.set_window_size(2000, 2000)
     

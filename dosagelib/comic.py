@@ -80,8 +80,10 @@ class ComicImage(object):
         else:
             maintype = content_type
             subtype = None
-        if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
-            raise IOError('content type %r is not an image at %s' % (content_type, self.url))
+        if not seleniumUse:
+            #for web driver, content initial content type doesn't matter
+            if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
+                raise IOError('content type %r is not an image at %s' % (content_type, self.url))
         # Always use mime type for file extension if it is sane.
         if maintype == 'image':
             self.ext = '.' + subtype.replace('jpeg', 'jpg')
@@ -96,11 +98,19 @@ class ComicImage(object):
         exist = [x for x in glob.glob(fnbase + ".*") if not x.endswith(".txt")]
         out.info(u"Get image URL %s" % self.url, level=1)
 
+        if len(exist) == 1:
+            lastchange = os.path.getmtime(exist[0])
+            self.connect(datetime.utcfromtimestamp(lastchange))
+            if self.urlobj.status_code == 304:  # Not modified
+                self._exist_err(exist[0])
+                return exist[0], False
+        else:
+            self.connect()
         
         if seleniumUse:
-            out.debug(u'Bypassing connection check because of webdriver')
+            #all webdriver images are .png, set by selenium
             fn = fnbase + '.png'
-            # compare with >= since content length could be the compressed size
+            #skip size compare since content length won't be accurate
             if os.path.isfile(fn):
                 self._exist_err(fn)
                 return fn, False
@@ -118,15 +128,6 @@ class ComicImage(object):
             return fn, True
 
         else:
-            if len(exist) == 1:
-                lastchange = os.path.getmtime(exist[0])
-                self.connect(datetime.utcfromtimestamp(lastchange))
-                if self.urlobj.status_code == 304:  # Not modified
-                    self._exist_err(exist[0])
-                    return exist[0], False
-            else:
-                self.connect()
-
             fn = fnbase + self.ext
             # compare with >= since content length could be the compressed size
             if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
