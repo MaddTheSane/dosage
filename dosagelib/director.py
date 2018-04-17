@@ -13,8 +13,7 @@ from six.moves.urllib.parse import urlparse
 
 from .output import out
 from . import events, scraper
-from .webdriver import driverbackup, seleniumUse
-
+from .webdriver import driverbackup, seleniumUse, exitDrivers
 
 class ComicQueue(Queue):
     """The comic scraper job queue."""
@@ -93,6 +92,8 @@ class ComicGetter(threading.Thread):
             host_lock = get_host_lock(scraperobj.url)
         with host_lock:
             self._getStrips(scraperobj)
+        #Shutting down child proccesses
+        exitDrivers()
 
     def _getStrips(self, scraperobj):
         """Get all strips from a scraper."""

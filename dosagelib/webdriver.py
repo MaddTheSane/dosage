@@ -21,8 +21,6 @@ class ResponseMimic:
   out.debug(u'Getting metadata')
   def __init__(self, content, resp):
     #Get real headers from urllib request
-    out.debug(u'Forming mimic response')
-    #add headers
     self.encoding = resp.encoding
     self.headers = resp.headers
     self.status_code= resp.status_code
@@ -30,7 +28,7 @@ class ResponseMimic:
       self.json=resp.json()
     except:
       self.json=None
-    #Add data from webdriver
+    #Add to data from webdriver
     self.content = content
     self.text = content
 
@@ -62,23 +60,29 @@ def startDriver():
   out.debug(u'Chrome Headless Browser Invoked')
 
 def getPageDataSel(url):
-  out.debug(u'Navigating to page')
+  trys =1
 
-  #get page content
-  startDriver()
-  try:
-    driver.get(url)
-    source =driver.page_source
-  except Exception as ex:
-    out.warn(u'Retrying. Exception: '+ str(ex))
-    driver.quit()
+  while (trys <= tryMax):
+    out.debug(u'Navigating to page. Enstablishing connection, try %s of %s' % (trys, tryMax))
+    #get page content
     try:
-      startDriver()
-      driver.get(url)
+      time.sleep(retryDelay**(trys-1)-1)
+      try:
+        driver.get(url)
+      except AttributeError:
+        startDriver()
+        driver.get(url)
       source =driver.page_source
+      break
     except:
-      source = None
-  driver.quit()
+      driver.quit()
+      if (trys == tryMax):
+        out.error(u'Connection failed: Max retrys reached')
+        source = u'0'
+        break
+      else:
+        out.warn(u'Connection error: Retrying with delay')
+        trys = trys+1
 
   #get page metadata
   try:
@@ -101,8 +105,12 @@ def getImgDataSel(url):
     out.debug(u'Navigating to image. Enstablishing connection, try %s of %s' % (trys, tryMax))
     try:
       time.sleep(retryDelay**(trys-1))
-      startDriver()
-      driver.get(url)
+      
+      try:
+        driver.get(url)
+      except AttributeError:
+        startDriver()
+        driver.get(url)
 
       orig_h = driver.execute_script("return window.outerHeight")
       orig_w = driver.execute_script("return window.outerWidth")
@@ -125,7 +133,6 @@ def getImgDataSel(url):
       # Set the window size back to what it was.
       driver.set_window_size(orig_w, orig_h)
 
-      driver.quit()
       break
 
     except:
@@ -138,3 +145,10 @@ def getImgDataSel(url):
         trys = trys+1
   out.debug(u'Exiting Chrome Headless Browser')
   return img
+
+def exitDrivers():
+  out.debug(u'Exiting Chrome Headless Browser')
+  try:
+    driver.quit()
+  except Exception as e:
+    out.error(u'Error quitting driver' + str(e))
