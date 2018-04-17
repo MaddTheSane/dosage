@@ -23,6 +23,7 @@ class ResponseMimic:
     self.encoding = resp.encoding
     self.headers = resp.headers
     self.status_code= resp.status_code
+    self.json=resp.json()
     #Add data from webdriver
     self.content = content
     self.text = content
