@@ -124,7 +124,6 @@ def getImgDataSel(url):
       new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
       new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
 
-      out.debug(u'Web driver: taking screenshot')
       # Resize the browser window.
       driver.set_window_size(new_w + margin_w, new_h + margin_h)
 
@@ -143,7 +142,7 @@ def getImgDataSel(url):
       else:
         out.warn(u'Connection error: Retrying with delay')
         trys = trys+1
-  out.debug(u'Exiting Chrome Headless Browser')
+
   return img
 
 def exitDrivers():

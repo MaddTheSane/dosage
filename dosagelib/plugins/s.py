@@ -378,6 +378,15 @@ class SpareParts(_BasicScraper):
     help = 'Index format: yyyymmdd'
 
 
+class SpinDrift(_ParserScraper):
+    url = 'http://www.spindrift-comic.com/'
+    rurl = escape(url)
+    stripUrl = url + 'comic/%s'
+    firstStripUrl = stripUrl % '00/0'
+    imageSearch = '//img[contains(@src, "/pages/")]'
+    prevSearch = '//li[@class="c-nav-5"]/a'
+    help = 'Index Format: issue-?/page-??'
+
 class Spinnerette(_ComicControlScraper):
     url = 'http://www.spinnyverse.com'
 
