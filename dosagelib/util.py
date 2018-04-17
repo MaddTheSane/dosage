@@ -182,7 +182,7 @@ def get_page(url, session, **kwargs):
 
     # read page data
     page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
-    out.debug(u"Got page content %r" % page.content, level=3)
+    #out.debug(u"Got page content %r" % page.content, level=3)
     return page
 
 def makeSequence(item):
@@ -280,7 +280,7 @@ def urlopen(url, session, referrer=None, max_content_bytes=None,
     if seleniumUse:
         page = getPageDataSel(url)
 
-        out.debug(u"Got page content %r" % page.content, level=3)
+        #out.debug(u"Got page content %r" % page.content, level=3)
         return page
     else:
         out.debug(u'Open URL %s' % url)

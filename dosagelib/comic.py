@@ -104,8 +104,12 @@ class ComicImage(object):
             if os.path.isfile(fn):
                 self._exist_err(fn)
                 return fn, False
-                
-            img = getImgDataSel(self.url)
+            
+            out.debug(u'Getting comic %s...' % self.url)
+            try:
+                img = getImgDataSel(self.url)
+            except:
+                raise
 
             out.debug(u'Writing comic to file %s...' % fn)
             with self.fileout(fn) as f:

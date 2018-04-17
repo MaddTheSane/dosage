@@ -2,6 +2,7 @@
 import sys
 import os
 from selenium import webdriver
+from selenium.common.exceptions import TimeoutException
 
 from .output import out
 
@@ -25,28 +26,46 @@ def startDriver():
   args = ["hide_console", ]
   global driver
   driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
+  driver.set_page_load_timeout(30)
   out.debug(u'Chrome Headless Browser Invoked')
 
 def getPageDataSel(url):
   out.debug(u'Navigating to page')
+  startDriver()
+
   try:
-  	driver.get(url)
-  except Exception:
-  	startDriver()
-  	driver.get(url)
+    driver.get(url)
+  except Exception as ex:
+    out.warn(u'Retrying. Exception: '+ str(ex))
+    try:
+      driver.quit()
+      startDriver()
+      driver.get(url)
+    except:
+      raise
 
   content = driver.page_source
   text = driver.page_source
   page = ResponseMimic(content, text)
+
+  out.debug(u'Exiting Chrome Headless Browser')
+  driver.quit()
   return page
 
 def getImgDataSel(url):
   out.debug(u'Navigating to image')
+
   try:
-  	driver.get(url)
-  except Exception:
-  	startDriver()
-  	driver.get(url)
+    driver.set_page_load_timeout(10)
+    driver.get(url)
+  except Exception as ex:
+    out.warn(u'Retrying. Exception: '+ str(ex))
+    try:
+      driver.quit()
+      startDriver()
+      driver.get(url)
+    except:
+      raise
 
   driver.set_window_size(2000, 2000)
     
@@ -65,9 +84,6 @@ def getImgDataSel(url):
   img = driver.get_screenshot_as_png()
   # Set the window size back to what it was.
   driver.set_window_size(orig_w, orig_h)
-
-  return img
-
-def endDriver():
   out.debug(u'Exiting Chrome Headless Browser')
   driver.quit()
+  return img
