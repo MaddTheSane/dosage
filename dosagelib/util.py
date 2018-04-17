@@ -281,8 +281,8 @@ def urlopen(url, session, referrer=None, max_content_bytes=None,
     if seleniumUse:
         page = getPageDataSel(url)
 
-        if page.status_code not in allow_errors:
-                raise Exception('HTTPError: ' + str(page.status_code))
+        #if page.status_code not in allow_errors:
+                #raise Exception('HTTPError: ' + str(page.status_code))
         #out.debug(u"Got page content %r" % page.content, level=3)
         return page
     else:
