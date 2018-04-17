@@ -38,6 +38,9 @@ def startDriver():
   optionsC = webdriver.ChromeOptions()
   optionsC.add_argument('headless')
   optionsC.add_argument('--log-level=3')
+  """This will only disable devtools listenings messages if and only if you followed the steps at 
+  https://stackoverflow.com/questions/48654427/hide-command-prompt-in-selenium-chromedriver?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
+  to edit the selenium library"""
   args = ["hide_console", ]
   global driver
   driver = webdriver.Chrome(chrome_options=optionsC, executable_path=driverPath, service_args=args)
