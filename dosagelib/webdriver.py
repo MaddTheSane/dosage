@@ -3,12 +3,15 @@ import sys
 import os
 import platform
 import requests
+import time
 from selenium import webdriver
 from selenium.common.exceptions import TimeoutException
 
 from .output import out
 from .configuration import UserAgent
 
+retryDelay = 2
+tryMax = 3
 driver = None
 seleniumUse = True
 driverbackup = False
@@ -46,8 +49,9 @@ def startDriver():
   #Chrome must be installed in default location
   driverPath =os.path.abspath(os.path.join(os.path.dirname(os.path.realpath(__file__)),os.pardir))  + '\dosagelib\chromedriver' +driverProgram
   optionsC = webdriver.ChromeOptions()
-  optionsC.add_argument('headless')
+  optionsC.add_argument('--headless')
   optionsC.add_argument('--log-level=3')
+  optionsC.add_argument('--disable-gpu')
   """This will only disable devtools listenings messages if and only if you followed the steps at 
   https://stackoverflow.com/questions/48654427/hide-command-prompt-in-selenium-chromedriver?utm_medium=organic&utm_source=google_rich_qa&utm_campaign=google_rich_qa
   to edit the selenium library"""
@@ -73,7 +77,7 @@ def getPageDataSel(url):
       driver.get(url)
       source =driver.page_source
     except:
-      raise
+      source = None
   driver.quit()
 
   #get page metadata
@@ -81,47 +85,56 @@ def getPageDataSel(url):
     headersReq = {}
     headersReq['User-Agent'] = UserAgent
     resp = requests.get(url, headers = headersReq)
-  except Exception as ex:
-      out.errpr(u'Exception: '+ str(ex))
-      raise
+  except requests.exceptions.RequestException as err:
+    msg = 'URL retrieval of %s failed: %s' % (url, err)
+    raise IOError(msg)
 
   page = ResponseMimic(source, resp)
 
-  out.debug(u'Exiting Chrome Headless Browser')
   return page
 
 def getImgDataSel(url):
-  out.debug(u'Navigating to image')
+  trys = 1
 
-  try:
-    driver.get(url)
-  except Exception as ex:
-    out.warn(u'Retrying. Exception: '+ str(ex))
-    driver.quit()
+  #get img content
+  while (trys <= tryMax):
+    out.debug(u'Navigating to image. Enstablishing connection, try %s of %s' % (trys, tryMax))
     try:
+      time.sleep(trys*retryDelay)
       startDriver()
       driver.get(url)
+
+      orig_h = driver.execute_script("return window.outerHeight")
+      orig_w = driver.execute_script("return window.outerWidth")
+      
+      # Get the dimensions of the browser and image.
+      driver.set_window_size(2000, 2000)
+      o_h = driver.execute_script("return window.outerHeight")
+      o_w = driver.execute_script("return window.outerWidth")
+      margin_h = o_h - driver.execute_script("return window.innerHeight")
+      margin_w = o_w - driver.execute_script("return window.innerWidth")
+      new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
+      new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
+
+      out.debug(u'Web driver: taking screenshot')
+      # Resize the browser window.
+      driver.set_window_size(new_w + margin_w, new_h + margin_h)
+
+      # Get the image by taking a screenshot of the page.
+      img = driver.get_screenshot_as_png()
+      # Set the window size back to what it was.
+      driver.set_window_size(orig_w, orig_h)
+
+      driver.quit()
+      break
+
     except:
-      raise
-  driver.quit()
-
-  driver.set_window_size(2000, 2000)
-    
-  # Get the dimensions of the browser and image.
-  orig_h = driver.execute_script("return window.outerHeight")
-  orig_w = driver.execute_script("return window.outerWidth")
-  margin_h = orig_h - driver.execute_script("return window.innerHeight")
-  margin_w = orig_w - driver.execute_script("return window.innerWidth")
-  new_h = driver.execute_script('return document.getElementsByTagName("img")[0].height')
-  new_w = driver.execute_script('return document.getElementsByTagName("img")[0].width')
-
-  # Resize the browser window.
-  driver.set_window_size(new_w + margin_w, new_h + margin_h)
-
-  # Get the image by taking a screenshot of the page.
-  img = driver.get_screenshot_as_png()
-  # Set the window size back to what it was.
-  driver.set_window_size(orig_w, orig_h)
+      driver.quit()
+      if (trys == tryMax):
+        out.error(u'Connection failed: Max retrys reached')
+        raise
+      else:
+        out.warn(u'Connection error: Retrying with delay')
+        trys = trys+1
   out.debug(u'Exiting Chrome Headless Browser')
-  driver.quit()
   return img

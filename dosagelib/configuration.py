@@ -15,8 +15,7 @@ Maintainer = u'Tobias Gruetzmacher'
 MaintainerEmail = u'tobias-dosage@23.gs'
 Url = u'http://dosage.rocks/'
 SupportUrl = u'https://github.com/webcomics/dosage/issues'
-#UserAgent = u"Mozilla/5.0 (compatible; %s/%s; +%s)" % (AppName, AppVersion,Url)
-UserAgent = u"Mozilla/5.0 (X11; Linux i686) AppleWebKit/537.17 (KHTML, like Gecko) Chrome/24.0.1312.27 Safari/537.17"
+UserAgent = u"Mozilla/5.0 (compatible; %s/%s; +%s)" % (AppName, AppVersion,Url)
 
 
 Copyright = u"""Copyright (C) 2004-2008 Tristan Seligmann and Jonathan Jacobs
