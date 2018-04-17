@@ -100,7 +100,7 @@ def getImgDataSel(url):
   while (trys <= tryMax):
     out.debug(u'Navigating to image. Enstablishing connection, try %s of %s' % (trys, tryMax))
     try:
-      time.sleep(trys*retryDelay)
+      time.sleep(retryDelay**(trys-1))
       startDriver()
       driver.get(url)
 
