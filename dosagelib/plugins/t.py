@@ -37,7 +37,6 @@ class TheDevilsPanties(_WPNavi):
 class TheDreamlandChronicles(_WordPressScraper):
     url = 'http://www.thedreamlandchronicles.com/'
 
-
 class TheGamerCat(_ParserScraper):
     url = "http://www.thegamercat.com/"
     stripUrl = url + "comic/%s/"
@@ -131,7 +130,6 @@ class ThisIsIndexed(_BasicScraper):
     prevSearch = compile(tagre("div", "class", "nav-previous") +
                          tagre("a", "href", r'(%spage/\d+/)[^"]*' % rurl))
     help = 'Index format: number'
-
 
 class ThreePanelSoul(_ComicControlScraper):
     url = 'http://threepanelsoul.com/'

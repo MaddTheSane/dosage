@@ -10,7 +10,7 @@ from selenium.common.exceptions import TimeoutException
 from .output import out
 from .configuration import UserAgent
 
-retryDelay = 2
+retryDelay = 30
 tryMax = 3
 driver = None
 seleniumUse = True
@@ -63,10 +63,10 @@ def getPageDataSel(url):
   trys =1
 
   while (trys <= tryMax):
-    out.debug(u'Navigating to page. Enstablishing connection, try %s of %s' % (trys, tryMax))
     #get page content
     try:
-      time.sleep(retryDelay**(trys-1)-1)
+      time.sleep(retryDelay**(trys-1))
+      out.debug(u'Navigating to page. Establishing connection, try %s of %s' % (trys, tryMax))
       try:
         driver.get(url)
       except AttributeError:
@@ -74,10 +74,10 @@ def getPageDataSel(url):
         driver.get(url)
       source =driver.page_source
       break
-    except:
+    except Exception as e:
       driver.quit()
       if (trys == tryMax):
-        out.error(u'Connection failed: Max retrys reached')
+        out.error(u'Connection failed: Max retrys reached' +str(e))
         source = u'0'
         break
       else:
@@ -103,10 +103,9 @@ def getImgDataSel(url):
 
   #get img content
   while (trys <= tryMax):
-    out.debug(u'Navigating to image. Enstablishing connection, try %s of %s' % (trys, tryMax))
     try:
       time.sleep(retryDelay**(trys-1))
-      
+      out.debug(u'Navigating to image. Establishing connection, try %s of %s' % (trys, tryMax))
       try:
         driver.get(url)
       except AttributeError:
@@ -117,7 +116,7 @@ def getImgDataSel(url):
       orig_w = driver.execute_script("return window.outerWidth")
       
       # Get the dimensions of the browser and image.
-      driver.set_window_size(2000, 2000)
+      driver.set_window_size(2000, 6500)
       o_h = driver.execute_script("return window.outerHeight")
       o_w = driver.execute_script("return window.outerWidth")
       margin_h = o_h - driver.execute_script("return window.innerHeight")

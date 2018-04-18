@@ -258,6 +258,7 @@ class SleeplessDomain(_ComicControlScraper):
 
 class SlightlyDamned(_ComicControlScraper):
     url = 'http://www.sdamned.com/'
+    stripUrl = url + 'comic/%s'
     firstStripUrl = url + 'comic/part-one-to-hell-and-back'
 
 

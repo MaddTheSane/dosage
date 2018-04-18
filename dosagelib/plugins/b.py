@@ -102,6 +102,13 @@ class BetweenFailures(_BasicScraper):
                                after="previous"))
     help = 'Index format: stripname'
 
+class BetweenPlaces(_ParserScraper):
+    url = 'https://web.archive.org/web/20180325003041/http://betweenplaces.spiderforest.com/'
+    stripUrl = url + '?comic=%s'
+    firstStripUrl = stripUrl % '20080617-chapter-one---title-page'
+    imageSearch = '//img[contains(@src, "comics")]'
+    prevSearch = '//img[@alt="previous"]/..'
+    help = 'Index Format: issue-?-page-??'
 
 class BiggerThanCheeses(_BasicScraper):
     url = 'http://www.biggercheese.com/'

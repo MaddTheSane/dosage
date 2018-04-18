@@ -22,7 +22,7 @@ class OctopusPie(_ParserScraper):
     help = 'Index format: yyyy-mm-dd/nnn-strip-name'
 
 class OfStarsAndSwords(_WordPressScraper):
-    url = 'http://ofstarsandswords.com/'
+    url = 'https://web.archive.org/web/20180318091416/http://ofstarsandswords.com/'
     prevSearch = '//a[@class="navi navi-prev"]'
     help = 'Index format: page-n'
 
@@ -114,6 +114,20 @@ class Optipess(_WPNavi):
     textSearch = '//div[@id="comic"]//img/@alt'
     textOptional = True
 
+class OrderOfTheStick(_ParserScraper):
+    url = 'http://www.giantitp.com/Comics.html'
+    stripUrl = 'http://www.giantitp.com/comics/oots' + '%s.html'
+    firstStripUrl = stripUrl % '0001'
+    imageSearch = '//img[contains(@src, "/comics/images/")]'
+    prevSearch = ('//img[@title="Previous Comic"]/..',
+        '(//p[@class="NoIndent"])[1]/a[3]'
+        )
+    help = 'Index format: n'
+
+    def namer(self, image_url, page_url):
+        pageparts = page_url.split('/')
+        parts = pageparts[4].split('.')
+        return parts[0]
 
 class OurHomePlanet(_ParserScraper):
     url = 'http://www.ourhomeplanet.net/'

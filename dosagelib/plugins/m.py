@@ -94,8 +94,8 @@ class MaxOveracts(_ParserScraper):
     help = 'Index format: nnn'
 
 class Mecoforie(_ParserScraper):
-    url = 'http://mecoforie.com/'
-    stripUrl = url + 'index.php?chapter=%s/'
+    url = 'http://mecoforie.com/index.php'
+    stripUrl = url + '?chapter=%s'
     firstStripUrl = stripUrl % '0&page=0'
     imageSearch = '//img[@class="comicimg"]'
     prevSearch = '//a[@title="Previous Page"]'

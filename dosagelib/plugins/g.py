@@ -74,8 +74,7 @@ class GirlGenius(_BasicScraper):
     url = baseUrl + 'comic.php'
     stripUrl = url + '?date=%s'
     firstStripUrl = stripUrl % '20021104'
-    imageSearch = compile(
-        tagre("img", "src", r"(%sggmain/strips/[^']*)" % rurl, quote="'"))
+    imageSearch = '//img[contains(@src, "strips")]',
     prevSearch = compile(tagre("a", "id", "topprev", quote="\"",
                                before=r"(%s[^\"']+)" % rurl))
     multipleImagesPerStrip = True
