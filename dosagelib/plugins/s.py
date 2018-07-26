@@ -261,6 +261,14 @@ class SlightlyDamned(_ComicControlScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = url + 'comic/part-one-to-hell-and-back'
 
+    def namer(self, image_url, page_url):
+        parts = page_url.split('/')
+        try:
+            result = parts[4]
+        except:
+            result =None
+        return result
+
 
 class SluggyFreelance(_ParserScraper):
     url = 'http://sluggy.com/'

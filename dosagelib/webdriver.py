@@ -65,7 +65,7 @@ def getPageDataSel(url):
   while (trys <= tryMax):
     #get page content
     try:
-      time.sleep(retryDelay**(trys-1))
+      time.sleep(5+retryDelay**(trys-1))
       out.debug(u'Navigating to page. Establishing connection, try %s of %s' % (trys, tryMax))
       try:
         driver.get(url)

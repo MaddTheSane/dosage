@@ -121,6 +121,10 @@ class NoNeedForBushido(_ParserScraper):
     prevSearch = '//a[@rel="prev"]'
     help = 'Index format: nnn'
 
+class NotAVillain(_WordPressScraper):
+    url = 'http://navcomic.com/'
+    imageSearch = '//img[@class="attachment-full size-full"]'
+    prevSearch = '//a[@rel="prev"]'
 
 class NotInventedHere(_ParserScraper):
     url = 'http://notinventedhe.re/'

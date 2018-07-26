@@ -216,6 +216,13 @@ class Dracula(_BasicScraper):
     prevSearch = compile(r'&nbsp;<a class="archivelink" href="(.+?)">&laquo; Prev</a>')
     help = 'Index format: nnn'
 
+class DreamKeepers(_ParserScraper):
+    url = 'http://www.dreamkeeperscomic.com/GNSaga.php'
+    stripUrl = url + '?pg=%s'
+    firstStripUrl = stripUrl % '1'
+    imageSearch = '//img[contains(@src, "GNSagapages")]',
+    prevSearch = '//a[@id="prev"]'
+    help = 'Index format: n'
 
 class DreamKeepersPrelude(_ParserScraper):
     url = 'http://www.dreamkeeperscomic.com/Prelude.php'
@@ -224,6 +231,21 @@ class DreamKeepersPrelude(_ParserScraper):
     prevSearch = '//a[@id="prev"]'
     help = 'Index format: n'
 
+class DreamScar(_ParserScraper):
+    url = 'http://dream-scar.net/'
+    stripUrl = url + '?id=%s'
+    imageSearch = '//img[@id="comic"]'
+    prevSearch = '//a[@title="previous"]'
+    help = 'Index format: n'
+
+    def namer(self, image_url, page_url):
+        pageparts = page_url.split('/')
+        parts = pageparts[3].split('=')
+        try:
+            result = parts[1]
+        except:
+            result =None
+        return result
 
 class DresdenCodak(_ParserScraper):
     url = 'http://dresdencodak.com/'
