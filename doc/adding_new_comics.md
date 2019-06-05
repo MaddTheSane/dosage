@@ -62,7 +62,7 @@ pattern must match those images in the HTML content of the page URL.
 To make it easy to match HTML tags, the ``tagre()`` function is
 helpful. The first parameter is the tag name, the second the attribute
 name and the third the attribute value. So in our example the given
-pattern whould match a tag like
+pattern would match a tag like
 ``<img src="http://superdupercomic.com/img/comic1.jpg" />``` .
 
 ```prevSearch = compile(tagre("a", "href", r'(%scomic/\d+)' % rurl, after="prev"))```

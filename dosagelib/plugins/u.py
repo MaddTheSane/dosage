@@ -56,6 +56,13 @@ class Unsounded(_BasicScraper):
         chapter, num = index.split('-')
         return self.stripUrl % (chapter, chapter, num)
 
+class UpToFourPlayers(_WordPressScraper):
+    url = 'http://www.uptofourplayers.com/'
+    stripUrl = url + 'comic/%s/'
+    firstStripUrl = stripUrl % '1-chapter-the-1st'
+    imageSearch = '//div[@id="comic"]//img'
+    prevSearch = '//a[@class="comic-nav-base comic-nav-previous"]'
+    help = 'Index format: name'
 
 class UrgentTransformationCrisis(_WordPressScraper):
     url = 'http://www.catomix.com/utc/'

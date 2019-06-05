@@ -9,7 +9,23 @@ from re import compile
 from ..scraper import _BasicScraper, _ParserScraper
 from ..helpers import indirectStarter, xpath_class
 from ..util import tagre
+from .common import _WordPressScraper
 
+
+class VampireCheerleaders(_BasicScraper):
+    url = 'http://www.vampirecheerleaders.net/'
+    stripUrl = url + 'strips-vc/%s'
+    firstStripUrl = stripUrl % 'fang_service'
+    imageSearch = compile(tagre("img", "src", r'(/comics/[^"]+)'))
+    prevSearch = compile(tagre("a", "href", r'(http://www\.vampirecheerleaders\.net/strips-vc/[^"]+)', before="cndprev"))
+    help = 'Index format: name'
+
+class Velocidad(_WordPressScraper):
+    url = 'http://velocidad-comic.com/'
+    stripUrl = url + '?comic=%s'
+    firstStripUrl = stripUrl % 'velocidad-cover'
+    imageSearch = '//div[@id="comic"]//img'
+    help = 'Index format: name'
 
 class VGCats(_BasicScraper):
     url = 'http://www.vgcats.com/comics/'
