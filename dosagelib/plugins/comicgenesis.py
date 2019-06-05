@@ -57,6 +57,8 @@ class ComicGenesis(_ParserScraper):
             cls('DarkWelkin', 'darkwelkin'),
             cls('DeepBlue', 'gjbivin', last='20131109'),
             cls('DemonEater', 'demoneater'),
+            #added
+            cls('Dissonance', 'dissonance'),
             cls('DoodleDiaries', 'doodlediaries'),
             cls('DormSweetDorm', 'dormsweetdorm'),
             cls('DoubleyouTeeEff', 'doubleyouteeeff'),
@@ -68,6 +70,7 @@ class ComicGenesis(_ParserScraper):
             cls('FantasyQwest', 'creatorauthorman'),
             cls('Fantazine', 'fantazin'),
             cls('Flounderville', 'flounderville'),
+            cls('FoxFire', 'foxfire'),
             cls('GEM', 'keltzy'),
             cls('Gonefor300days', 'g4300d'),
             cls('ImpendingDoom', 'impending'),

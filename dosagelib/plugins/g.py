@@ -74,8 +74,7 @@ class GirlGenius(_BasicScraper):
     url = baseUrl + 'comic.php'
     stripUrl = url + '?date=%s'
     firstStripUrl = stripUrl % '20021104'
-    imageSearch = compile(
-        tagre("img", "src", r"(%sggmain/strips/[^']*)" % rurl, quote="'"))
+    imageSearch = '//img[contains(@src, "strips")]',
     prevSearch = compile(tagre("a", "id", "topprev", quote="\"",
                                before=r"(%s[^\"']+)" % rurl))
     multipleImagesPerStrip = True
@@ -167,6 +166,8 @@ class GrrlPower(_WPNavi):
     url = 'http://grrlpowercomic.com/'
     firstStripUrl = url + 'archives/48'
 
+class GuardianOfTheGates(_WordPressScraper):
+    url = 'http://guardianofthegates.com/'
 
 class GUComics(_BasicScraper):
     url = 'http://www.gucomics.com/'

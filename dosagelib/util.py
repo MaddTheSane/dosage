@@ -33,8 +33,10 @@ try:
 except ImportError:
     from backports.functools_lru_cache import lru_cache
 
+from .webdriver import getPageDataSel
 from .output import out
 from .configuration import UserAgent, AppName, App, SupportUrl
+from .webdriver import seleniumUse
 
 # Maximum content size for HTML pages
 MaxContentBytes = 1024 * 1024 * 3  # 3 MB
@@ -179,9 +181,11 @@ def case_insensitive_re(name):
     return "".join("[%s%s]" % (c.lower(), c.upper()) for c in name)
 
 
+
 def get_page(url, session, **kwargs):
     """Get text content of given URL."""
-    check_robotstxt(url, session)
+    #check_robotstxt(url, session)
+
     # read page data
     page = urlopen(url, session, max_content_bytes=MaxContentBytes, **kwargs)
     out.debug(u"Got page content %r" % page.content, level=3)
@@ -198,7 +202,6 @@ def get_page(url, session, **kwargs):
         splits = urlsplit(redirect)
         page._content += '\n<base href="%s">\n' % urlunsplit((splits.scheme, splits.netloc, splits.path.rsplit('/', 1)[0] + '/', "", ""))
     return page
-
 
 def makeSequence(item):
     """If item is already a list or tuple, return it.
@@ -263,6 +266,7 @@ def check_robotstxt(url, session):
     """
     roboturl = get_roboturl(url)
     rp = get_robotstxt_parser(roboturl, session=session)
+    
     if not rp.can_fetch(UserAgent, str(url)):
         raise IOError("%s is disallowed by %s" % (url, roboturl))
 
@@ -288,32 +292,40 @@ def get_robotstxt_parser(url, session=None):
 def urlopen(url, session, referrer=None, max_content_bytes=None,
             allow_errors=(), useragent=UserAgent, **kwargs):
     """Open an URL and return the response object."""
-    out.debug(u'Open URL %s' % url)
-    if 'headers' not in kwargs:
-        kwargs['headers'] = {}
-    kwargs['headers']['User-Agent'] = useragent
-    if referrer:
-        kwargs['headers']['Referer'] = referrer
-    out.debug(u'Sending headers %s' % kwargs['headers'], level=3)
-    out.debug(u'Sending cookies %s' % session.cookies)
-    if 'timeout' not in kwargs:
-        kwargs['timeout'] = ConnectionTimeoutSecs
-    if 'data' not in kwargs:
-        method = 'GET'
-    else:
-        method = 'POST'
-        out.debug(u'Sending POST data %s' % kwargs['data'], level=3)
-    try:
-        req = session.request(method, url, **kwargs)
-        out.debug(u'Response cookies: %s' % req.cookies)
-        check_content_size(url, req.headers, max_content_bytes)
-        if req.status_code not in allow_errors:
-            req.raise_for_status()
-        return req
-    except requests.exceptions.RequestException as err:
-        msg = 'URL retrieval of %s failed: %s' % (url, err)
-        raise IOError(msg)
+    if seleniumUse:
+        page = getPageDataSel(url)
 
+        #if page.status_code not in allow_errors:
+                #raise Exception('HTTPError: ' + str(page.status_code))
+        #out.debug(u"Got page content %r" % page.content, level=3)
+        return page
+    else:
+        out.debug(u'Open URL %s' % url)
+        if 'headers' not in kwargs:
+            kwargs['headers'] = {}
+        kwargs['headers']['User-Agent'] = useragent
+        if referrer:
+            kwargs['headers']['Referer'] = referrer
+        out.debug(u'Sending headers %s' % kwargs['headers'], level=3)
+        out.debug(u'Sending cookies %s' % session.cookies)
+        if 'timeout' not in kwargs:
+            kwargs['timeout'] = ConnectionTimeoutSecs
+        if 'data' not in kwargs:
+            method = 'GET'
+        else:
+            method = 'POST'
+            out.debug(u'Sending POST data %s' % kwargs['data'], level=3)
+        try:
+            req = session.request(method, url, **kwargs)
+            out.debug(u'Response cookies: %s' % req.cookies)
+            check_content_size(url, req.headers, max_content_bytes)
+            if req.status_code not in allow_errors:
+                req.raise_for_status()
+            return req
+        except requests.exceptions.RequestException as err:
+            msg = 'URL retrieval of %s failed: %s' % (url, err)
+            raise IOError(msg)
+        
 
 def check_content_size(url, headers, max_content_bytes):
     """Check that content length in URL response headers do not exceed the

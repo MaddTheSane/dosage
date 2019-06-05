@@ -257,7 +257,16 @@ class SleeplessDomain(_ComicControlScraper):
 
 class SlightlyDamned(_ComicControlScraper):
     url = 'http://www.sdamned.com/'
+    stripUrl = url + 'comic/%s'
     firstStripUrl = url + 'comic/part-one-to-hell-and-back'
+
+    def namer(self, image_url, page_url):
+        parts = page_url.split('/')
+        try:
+            result = parts[4]
+        except:
+            result =None
+        return result
 
 
 class SluggyFreelance(_ParserScraper):
@@ -378,6 +387,15 @@ class SpareParts(_BasicScraper):
                                quote="'") + "Previous Comic")
     help = 'Index format: yyyymmdd'
 
+
+class SpinDrift(_ParserScraper):
+    url = 'http://www.spindrift-comic.com/'
+    rurl = escape(url)
+    stripUrl = url + 'comic/%s'
+    firstStripUrl = stripUrl % '00/0'
+    imageSearch = '//img[contains(@src, "/pages/")]'
+    prevSearch = '//li[@class="c-nav-5"]/a'
+    help = 'Index Format: issue-?/page-??'
 
 class Spinnerette(_ComicControlScraper):
     url = 'http://www.spinnyverse.com'

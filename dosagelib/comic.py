@@ -11,10 +11,11 @@ import codecs
 import contextlib
 from datetime import datetime
 
+from .webdriver import getImgDataSel
 from .output import out
-from .util import unquote, getFilename, urlopen, strsize
+from .util import unquote, getFilename, urlopen, strsize, get_page
 from .events import getHandler
-
+from .webdriver import seleniumUse
 
 # Maximum content size for images
 MaxImageBytes = 1024 * 1024 * 20  # 20 MB
@@ -79,13 +80,14 @@ class ComicImage(object):
         else:
             maintype = content_type
             subtype = None
-        if maintype != 'image' and content_type not in (
-                'application/octet-stream', 'application/x-shockwave-flash'):
-            raise IOError('content type %r is not an image at %s' % (
-                content_type, self.url))
+        if not seleniumUse:
+            #for web driver, content initial content type doesn't matter
+            if maintype != 'image' and content_type not in ('application/octet-stream', 'application/x-shockwave-flash'):
+                raise IOError('content type %r is not an image at %s' % (content_type, self.url))
         # Always use mime type for file extension if it is sane.
         if maintype == 'image':
             self.ext = '.' + subtype.replace('jpeg', 'jpg')
+
         self.contentLength = int(self.urlobj.headers.get('content-length', 0))
         out.debug(u'... filename = %r, ext = %r, contentLength = %d' % (
             self.filename, self.ext, self.contentLength))
@@ -95,30 +97,56 @@ class ComicImage(object):
         fnbase = self._fnbase(basepath)
         exist = [x for x in glob.glob(fnbase + ".*") if not x.endswith(".txt")]
         out.info(u"Get image URL %s" % self.url, level=1)
-        if len(exist) == 1:
-            lastchange = os.path.getmtime(exist[0])
-            self.connect(datetime.utcfromtimestamp(lastchange))
-            if self.urlobj.status_code == 304:  # Not modified
-                self._exist_err(exist[0])
-                return exist[0], False
+
+        
+        if seleniumUse:
+            #all webdriver images are .png, set by selenium
+            out.debug(u'Webdriver byspassing connection check of  %s...' % self.url)
+
+            fn = fnbase + '.png'
+            #skip size compare since content length won't be accurate
+            if os.path.isfile(fn):
+                self._exist_err(fn)
+                return fn, False
+            
+            out.debug(u'Getting comic %s...' % self.url)
+            try:
+                img = getImgDataSel(self.url)
+            except:
+                raise
+
+            out.debug(u'Writing comic to file %s...' % fn)
+            with self.fileout(fn) as f:
+                    f.write(img)
+            getHandler().comicDownloaded(self, fn)
+            return fn, True
+
         else:
-            self.connect()
-        fn = fnbase + self.ext
-        # compare with >= since content length could be the compressed size
-        if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
-            self._exist_err(fn)
-            return fn, False
-        out.debug(u'Writing comic to file %s...' % fn)
-        with self.fileout(fn) as f:
-            for chunk in self.urlobj.iter_content(self.ChunkBytes):
-                f.write(chunk)
-        if self.text:
-            fntext = fnbase + ".txt"
-            out.debug(u'Writing comic text to file %s...' % fntext)
-            with self.fileout(fntext, encoding='utf-8') as f:
-                f.write(self.text)
-        getHandler().comicDownloaded(self, fn)
-        return fn, True
+            if len(exist) == 1:
+                lastchange = os.path.getmtime(exist[0])
+                self.connect(datetime.utcfromtimestamp(lastchange))
+                if self.urlobj.status_code == 304:  # Not modified
+                    self._exist_err(exist[0])
+                    return exist[0], False
+            else:
+                self.connect()
+
+            fn = fnbase + self.ext
+            # compare with >= since content length could be the compressed size
+            if os.path.isfile(fn) and os.path.getsize(fn) >= self.contentLength:
+                self._exist_err(fn)
+                return fn, False
+            out.debug(u'Writing comic to file %s...' % fn)
+            with self.fileout(fn) as f:
+                for chunk in self.urlobj.iter_content(self.ChunkBytes):
+                    f.write(chunk)
+            if self.text:
+                fntext = fnbase + ".txt"
+                out.debug(u'Writing comic text to file %s...' % fntext)
+                with self.fileout(fntext, encoding='utf-8') as f:
+                    f.write(self.text)
+            getHandler().comicDownloaded(self, fn)
+            return fn, True
 
     @contextlib.contextmanager
     def fileout(self, filename, encoding=None):

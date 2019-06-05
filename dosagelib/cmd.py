@@ -13,7 +13,6 @@ from . import events, configuration, singleton, director, scraper, __version__
 from .output import out
 from .util import internal_error, strlimit
 
-
 class ArgumentParser(argparse.ArgumentParser):
     """Custom argument parser."""
 

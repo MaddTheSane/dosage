@@ -7,6 +7,9 @@ from __future__ import absolute_import, division, print_function
 
 from .common import _WordPressScraper
 
+class OneHundredSixtyFourDays(_WordPressScraper):
+    name = '164Days'
+    url = 'http://164days.co.uk/'
 
 class NineteenSeventySeven(_WordPressScraper):
     name = '1977'

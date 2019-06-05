@@ -98,8 +98,8 @@ class Output(object):
 
     def write(self, s, level=0, color=None):
         """Write message with indentation, context and optional timestamp."""
-        if level > self.level:
-            return
+        #if level > self.level:
+            #return
         if self.timestamps:
             timestamp = time.strftime(u'%H:%M:%S ')
         else:

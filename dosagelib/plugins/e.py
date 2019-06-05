@@ -15,16 +15,26 @@ from .common import _ComicControlScraper, _WordPressScraper, _WPNavi, WP_LATEST_
 
 
 class EarthsongSaga(_ParserScraper):
+    #Fyi earthsong's site has broken links
     url = 'http://earthsongsaga.com/vol5/epilogue5.php'
-    imageSearch = '//div[@id="comic"]//img'
-    prevSearch = '//a[@title="Previous"]'
-    endOfLife = True
+    firstStripUrl = 'http://earthsongsaga.com/vol1/vol1cover.html'
+    imageSearch = ('//div[@id="comic"]//img',
+        '//img[contains(@src, "vol")]',
+        '//img[contains(@src, "cover")]'
+    )
+    prevSearch = ('//a[@title="Previous"]',
+        '//div[@align="center"]/a'
+    )
+
+    help = 'Index format: vol?/?'
 
     def namer(self, image_url, page_url):
-        imgmatch = compile(r'images/vol(\d+)/ch(\d+)/(.*)\.\w+$',
-                           IGNORECASE).search(image_url)
-        return 'vol%02d_ch%02d_%s' % (
-            int(imgmatch.group(1)), int(imgmatch.group(2)), imgmatch.group(3))
+        try:
+            imgmatch = compile(r'images/vol(\d+)/ch(\d+)/(.*)\.\w+$',IGNORECASE).search(image_url)
+            result = 'vol%02d_ch%02d_%s' % (int(imgmatch.group(1)), int(imgmatch.group(2)), imgmatch.group(3))
+        except:
+            result= None
+        return result
 
 
 class EasilyAmused(_WordPressScraper):

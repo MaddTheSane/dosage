@@ -13,7 +13,7 @@ from six.moves.urllib.parse import urlparse
 
 from .output import out
 from . import events, scraper
-
+from .webdriver import driverbackup, seleniumUse, exitDrivers
 
 class ComicQueue(Queue):
     """The comic scraper job queue."""
@@ -92,6 +92,8 @@ class ComicGetter(threading.Thread):
             host_lock = get_host_lock(scraperobj.url)
         with host_lock:
             self._getStrips(scraperobj)
+        #Shutting down child proccesses
+        exitDrivers()
 
     def _getStrips(self, scraperobj):
         """Get all strips from a scraper."""
@@ -130,7 +132,7 @@ class ComicGetter(threading.Thread):
                 if self.options.dry_run:
                     filename, saved = "", False
                 else:
-                    filename, saved = image.save(self.options.basepath)
+                    filename, saved = self.trySave(image)
                 if saved:
                     allskipped = False
                 if self.stopped:
@@ -139,6 +141,27 @@ class ComicGetter(threading.Thread):
                 out.exception('Could not save image at %s to %s: %r' % (image.referrer, image.filename, msg))
                 self.errors += 1
         return allskipped
+
+    def trySave(self, image):
+        """Attempts to save comic strip, if fails and webdriver backup is enabled then retrys with selenium"""
+        try:
+            val = image.save(self.options.basepath)
+        except:
+            if driverbackup:
+                seleniumUse = True
+                try:
+                    val = image.save(self.options.basepath)
+                except:
+                    if driverbackup:
+                        seleniumUse = False
+                    raise
+            else:
+                raise
+        
+        if driverbackup:
+            seleniumUse = False
+        return val
+
 
     def stop(self):
         """Mark this thread as stopped."""
@@ -151,6 +174,7 @@ threads = []
 
 def getComics(options):
     """Retrieve comics."""
+
     if options.handler:
         for name in set(options.handler):
             events.addHandler(name, options.basepath, options.baseurl, options.allowdownscale)
@@ -178,6 +202,7 @@ def getComics(options):
     finally:
         events.getHandler().end()
         events.clear_handlers()
+    
     return errors
 
 

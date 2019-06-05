@@ -455,6 +455,8 @@ class _ParserScraper(Scraper):
 
     def getPage(self, url):
         page = super(_ParserScraper, self).getPage(url)
+        #new get request
+
         if page.encoding:
             # Requests figured out the encoding, so we can deliver Unicode to
             # LXML. Unfortunatly, LXML feels betrayed if there is still an XML

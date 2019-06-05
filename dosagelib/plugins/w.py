@@ -93,6 +93,14 @@ class WhyTheLongFace(_BasicScraper):
     prevSearch = compile(r'HREF="(.+?)"><IMG SRC="nprev.gif" ')
     help = 'Index format: yyyymm'
 
+class WildeLife(_ParserScraper):
+    url = 'http://wildelifecomic.com/'
+    rurl = escape(url)
+    stripUrl = url + 'comic/%s'
+    firstStripUrl = stripUrl % '1'
+    imageSearch = '//img[@id="cc-comic"]'
+    prevSearch = '//a[@class="cc-prev"]'
+    help = 'Index Format: n'
 
 class Wigu(_ParserScraper):
     stripUrl = 'http://www.wigucomics.com/adventures/index.php?comic=%s'

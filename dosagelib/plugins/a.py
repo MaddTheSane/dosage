@@ -22,9 +22,9 @@ class AbstruseGoose(_BasicScraper):
     imageSearch = compile(tagre('img', 'src',
                                 r'(https://abstrusegoose\.com/strips/[^<>"]+)'))
     prevSearch = compile(tagre('a', 'href', r'(%s\d+)' % rurl) +
-                         r'(?:&laquo;|«) Previous')
+                         r'(?:&laquo;|ï¿½) Previous')
     nextSearch = compile(tagre('a', 'href', r'(%s\d+)' % rurl) +
-                         r'(?:Next &raquo;|»)')
+                         r'(?:Next &raquo;|ï¿½)')
     help = 'Index format: n (unpadded)'
     textSearch = compile(tagre("img", "title", r'([^"]+)'))
 
@@ -239,6 +239,11 @@ class Annyseed(_ParserScraper):
         if 'Annyseed150' in fromurl and 'Annyseed150' in tourl:
             return self.stripUrl % '149'
         return tourl
+
+
+class ApeNotMonkey(_WordPressScraper):
+    url = 'http://www.apenotmonkey.com/'
+    prevSearch ='//a[@rel="prev"]'
 
 
 class AppleGeeks(_BasicScraper):
