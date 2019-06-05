@@ -88,12 +88,21 @@ class GirlsWithSlingshots(_BasicScraper):
     stripUrl = url + 'comic/%s'
     firstStripUrl = stripUrl % 'gws1'
     imageSearch = (
-        compile(tagre("img", "src", r'(%scomics/[^"]+)' % rurl)),
+        compile(tagre("img", "src", r'(//www.girlswithslingshots.com/comics/[^"]+)')),
         compile(tagre("img", "src",
                       r'(http://cdn\.girlswithslingshots\.com/comics/[^"]+)')),
     )
-    prevSearch = compile(tagre("a", "href", r'(%scomic/[^"]+)' % rurl,
+    prevSearch = compile(tagre("a", "href", r'(//www.girlswithslingshots.com/comic/[^"]+)',
                                after="prev"))
+
+    @classmethod
+    def namer(cls, imageUrl, pageUrl):
+        """Remove random junk from image names."""
+        imgname = imageUrl.split('/')[-1]
+        if '-' in imgname:
+            imgname = imgname.rsplit('-', 1)[1]
+        return '%s' % (imgname)
+
     help = 'Index format: stripname'
 
 
@@ -175,7 +184,7 @@ class GunnerkriggCourt(_BasicScraper):
     imageSearch = compile(tagre("img", "src", r'(/comics/[^"]+)'))
     prevSearch = compile(
         tagre("a", "href", r'(\?p=\d+)') +
-        tagre("img", "src", "http://www\.gunnerkrigg\.com/images/prev_a\.jpg"))
+        tagre("img", "src", "/images/prev_a\.jpg"))
     help = 'Index format: number'
 
 
